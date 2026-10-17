@@ -6,13 +6,13 @@ import random
 
 # 스마트폰 반응형 UI 설정
 st.set_page_config(
-    page_title="🔥 소방기호 원본 도식 고화질 암기장",
+    page_title="🔥 소방기호 초고화질 스마트 암기장",
     page_icon="🎴",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-# 모바일 커스텀 CSS 스타일링
+# 모바일 커스텀 CSS 스타일링 (이미지 선명도 crisp-edges 주입)
 st.markdown('''
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
@@ -43,6 +43,13 @@ st.markdown('''
         border-radius: 12px;
         margin-bottom: 10px;
     }
+    /* 디스플레이 렌더링 픽셀 선명도 극대화 */
+    img {
+        image-rendering: -webkit-optimize-contrast !important;
+        image-rendering: crisp-edges !important;
+        border-radius: 10px !important;
+        border: 1px solid #e2e8f0 !important;
+    }
     div.stButton > button {
         width: 100% !important;
         border-radius: 12px !important;
@@ -53,50 +60,35 @@ st.markdown('''
 </style>
 ''', unsafe_allow_html=True)
 
-# 초고화질 선명도 업스케일링 및 노이즈 정화 함수
-def enhance_cell_image(crop_bgr, target_w=600, target_h=240):
+# 4배 초고화질 선명도 강화 및 순백색 정화 알고리즘
+def enhance_cell_hd(crop_bgr):
     if crop_bgr is None or crop_bgr.size == 0:
-        return np.ones((target_h, target_w, 3), dtype=np.uint8) * 255
+        return np.ones((200, 400, 3), dtype=np.uint8) * 255
         
-    # 테두리 검은 선 제거
+    # 1. 자잘한 테두리 검은 격자선 잘라내기
     ch, cw = crop_bgr.shape[:2]
-    if ch > 10 and cw > 10:
+    if ch > 12 and cw > 12:
         crop_bgr = crop_bgr[3:ch-3, 3:cw-3]
 
-    # 1. LANCZOS4 3.5배 고화질 업스케일링
-    upscaled = cv2.resize(crop_bgr, (0, 0), fx=3.5, fy=3.5, interpolation=cv2.INTER_LANCZOS4)
+    # 2. 4배 초고해상도 Lanczos4 업스케일링
+    up = cv2.resize(crop_bgr, (0, 0), fx=4.0, fy=4.0, interpolation=cv2.INTER_LANCZOS4)
     
-    # 2. 샤프닝(Sharpening) 필터 적용
-    sharpen_kernel = np.array([
-        [0, -0.35, 0],
-        [-0.35, 2.4, -0.35],
-        [0, -0.35, 0]
-    ])
-    sharpened = cv2.filter2D(upscaled, -1, sharpen_kernel)
+    # 3. 언샤프 마스크 (Unsharp Masking) - 선과 글자 테두리를 칼같이 벼려냄
+    blur = cv2.GaussianBlur(up, (0, 0), 3.0)
+    sharpened = cv2.addWeighted(up, 1.8, blur, -0.8, 0)
     
-    # 3. 배경 노이즈 제거 및 순백색 정화
+    # 4. 종이 지저분한 회색 노이즈 제거 (순백색 #FFFFFF 정화)
     gray = cv2.cvtColor(sharpened, cv2.COLOR_BGR2GRAY)
-    _, mask = cv2.threshold(gray, 215, 255, cv2.THRESH_BINARY)
-    sharpened[mask == 255] = 255
+    _, bg_mask = cv2.threshold(gray, 205, 255, cv2.THRESH_BINARY)
+    sharpened[bg_mask == 255] = 255
     
-    # 4. 캔버스 규격 맞춤 및 중앙 배치
-    h, w = sharpened.shape[:2]
-    max_w = target_w - 40
-    max_h = target_h - 40
+    # 5. 텍스트 및 소방기호 선 딥블랙 진하기 보정
+    dark_mask = gray < 160
+    sharpened[dark_mask] = np.clip(sharpened[dark_mask].astype(np.int16) - 35, 0, 255).astype(np.uint8)
     
-    scale = min(max_w / w, max_h / h)
-    nw, nh = max(1, int(w * scale)), max(1, int(h * scale))
-    
-    fit_img = cv2.resize(sharpened, (nw, nh), interpolation=cv2.INTER_LANCZOS4)
-    
-    canvas = np.ones((target_h, target_w, 3), dtype=np.uint8) * 255
-    off_x = (target_w - nw) // 2
-    off_y = (target_h - nh) // 2
-    
-    canvas[off_y:off_y+nh, off_x:off_x+nw] = fit_img
-    return cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
+    return cv2.cvtColor(sharpened, cv2.COLOR_BGR2RGB)
 
-# 저장소 내 교재 이미지에서 표를 자동 추출하여 고화질 카드로 변환
+# 저장소 내 교재 이미지에서 표를 자동 추출하여 HD 카드로 변환
 @st.cache_data
 def load_cards_from_repo():
     all_files = glob.glob("*.[pP][nN][gG]") + glob.glob("*.[jJ][pP][gG]") + glob.glob("*.[jJ][pP][eE][gG]")
@@ -148,7 +140,6 @@ def load_cards_from_repo():
                 continue
                 
             r_boxes = sorted(rows[r_k], key=lambda b: b[0])
-            
             p = 0
             while p < len(r_boxes) - 1:
                 b1 = r_boxes[p]      # 왼쪽: 정답 명칭
@@ -163,13 +154,13 @@ def load_cards_from_repo():
                     
                     cell_gray = cv2.cvtColor(sym_crop, cv2.COLOR_BGR2GRAY)
                     if np.sum(cell_gray < 220) > 30:
-                        # 고화질 업스케일링 처리
-                        hd_sym = enhance_cell_image(sym_crop)
-                        hd_name = enhance_cell_image(name_crop)
+                        # 4배 HD 선명도 보정 적용
+                        hd_sym = enhance_cell_hd(sym_crop)
+                        hd_name = enhance_cell_hd(name_crop)
                         
                         cards.append({
-                            "symbol": hd_sym,  # 앞면: 선명한 기호 그림
-                            "name": hd_name    # 뒷면: 선명한 정답 명칭
+                            "symbol": hd_sym,  # 앞면: 또렷한 기호 그림
+                            "name": hd_name    # 뒷면: 또렷한 정답 명칭
                         })
                     p += 2
                 else:
@@ -190,7 +181,7 @@ st.title("🔥 소방기호 원본 도식 암기장")
 if not cards:
     st.warning("⚠️ 저장소에서 소방기호 표 이미지를 찾지 못했습니다. 원본 교재 이미지 파일(.jpg/.png)을 올려주세요!")
 else:
-    st.caption(f"📱 교재 이미지에서 총 **{len(cards)}개**의 초고화질 카드를 불러왔습니다.")
+    st.caption(f"📱 교재 이미지에서 총 **{len(cards)}개**의 HD 선명 카드를 불러왔습니다.")
     
     total_c = len(cards)
     curr_idx = st.session_state.card_idx % total_c
