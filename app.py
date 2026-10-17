@@ -77,7 +77,7 @@ def enhance_cell_image(crop_bgr, target_w=600, target_h=240):
     # 3. 배경 노이즈 제거 및 순백색 정화
     gray = cv2.cvtColor(sharpened, cv2.COLOR_BGR2GRAY)
     _, mask = cv2.threshold(gray, 215, 255, cv2.THRESH_BINARY)
-    sharpened[mask == 255] = [255, 255, 255]
+    sharpened[mask == 255] = 255
     
     # 4. 캔버스 규격 맞춤 및 중앙 배치
     h, w = sharpened.shape[:2]
