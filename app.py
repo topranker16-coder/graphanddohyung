@@ -4,6 +4,7 @@ import numpy as np
 import glob
 import random
 
+# 스마트폰 반응형 UI 설정
 st.set_page_config(
     page_title="🔥 소방기호 원본 도식 스마트 암기장",
     page_icon="🎴",
@@ -11,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 스마트폰 UI 커스텀 스타일링
+# 모바일 커스텀 CSS 스타일링
 st.markdown('''
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
@@ -22,44 +23,25 @@ st.markdown('''
         padding-left: 0.8rem !important;
         padding-right: 0.8rem !important;
     }
-    .flashcard-box {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border: 2px solid #cbd5e1;
-        border-radius: 20px;
-        padding: 15px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        min-height: 280px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 15px;
-        position: relative;
-    }
     .card-badge {
-        position: absolute;
-        top: 12px;
-        left: 15px;
+        display: inline-block;
         background-color: #ef4444;
         color: white;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         font-weight: bold;
         padding: 4px 12px;
         border-radius: 12px;
+        margin-bottom: 10px;
     }
-    .card-num {
-        position: absolute;
-        top: 12px;
-        right: 15px;
-        color: #64748b;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-    .touch-hint {
-        color: #94a3b8;
-        font-size: 0.82rem;
-        margin-top: 8px;
+    .card-badge-back {
+        display: inline-block;
+        background-color: #10b981;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: bold;
+        padding: 4px 12px;
+        border-radius: 12px;
+        margin-bottom: 10px;
     }
     div.stButton > button {
         width: 100% !important;
@@ -71,10 +53,11 @@ st.markdown('''
 </style>
 ''', unsafe_allow_html=True)
 
-# 저장소의 이미지 파일들에서 108개 소방기호 카드를 자동 추출 (캐싱 처리)
+# 저장소 내 모든 이미지 파일(.png, .jpg, .jpeg)에서 소방기호 표 자동 추출
 @st.cache_data
 def load_cards_from_repo():
-    img_paths = sorted(glob.glob("*.jpg") + glob.glob("*.jpeg") + glob.glob("*.png"))
+    all_files = glob.glob("*.[pP][nN][gG]") + glob.glob("*.[jJ][pP][gG]") + glob.glob("*.[jJ][pP][eE][gG]")
+    img_paths = sorted(list(set(all_files)))
     cards = []
     
     for img_path in img_paths:
@@ -82,7 +65,9 @@ def load_cards_from_repo():
         if img is None:
             continue
         h_img, w_img = img.shape[:2]
-        
+        if h_img < 200 or w_img < 200:
+            continue
+            
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
         
@@ -137,7 +122,6 @@ def load_cards_from_repo():
 
 cards = load_cards_from_repo()
 
-# 세션 관리
 if "card_idx" not in st.session_state:
     st.session_state.card_idx = 0
 if "is_flipped" not in st.session_state:
@@ -148,9 +132,9 @@ if "known_set" not in st.session_state:
 st.title("🔥 소방기호 원본 도식 암기장")
 
 if not cards:
-    st.warning("⚠️ 저장소에 교재 이미지 파일(.jpg)이 없습니다. 깃허브 저장소에 원본 이미지 파일들을 올려주세요!")
+    st.warning("⚠️ 저장소에서 소방기호 표 이미지(JPG, PNG)를 찾지 못했습니다. 원본 교재 이미지 파일을 깃허브 저장소에 올려주세요!")
 else:
-    st.caption(f"📱 교재 이미지에서 총 **{len(cards)}개**의 원본 소방기호 카드가 준비되었습니다.")
+    st.caption(f"📱 교재 이미지에서 총 **{len(cards)}개**의 소방기호 카드를 불러왔습니다.")
     
     total_c = len(cards)
     curr_idx = st.session_state.card_idx % total_c
@@ -162,24 +146,18 @@ else:
     st.progress(prog_val)
     st.caption(f"📊 암기 진도율: {total_c}개 중 {known_cnt}개 암기 완료 ({int(prog_val*100)}%)")
 
-    # 플래시카드 화면 (앞면: 실제 기호 / 뒷면: 실제 정답 명칭)
-    if not st.session_state.is_flipped:
-        st.markdown(f'''
-        <div class="flashcard-box">
-            <div class="card-badge">앞면: 원본 기호 그림</div>
-            <div class="card-num">{curr_idx + 1} / {total_c}</div>
-        </div>
-        ''', unsafe_allow_html=True)
-        st.image(curr_c["symbol"], use_container_width=True)
-    else:
-        st.markdown(f'''
-        <div class="flashcard-box" style="border-color: #3b82f6; background: #ffffff;">
-            <div class="card-badge" style="background-color: #10b981;">뒷면: 원본 정답 명칭</div>
-            <div class="card-num">{curr_idx + 1} / {total_c}</div>
-        </div>
-        ''', unsafe_allow_html=True)
-        st.image(curr_c["name"], use_container_width=True)
+    # 카드 표시 (Streamlit Native st.image 사용으로 에러 방지)
+    with st.container():
+        if not st.session_state.is_flipped:
+            st.markdown(f'<div class="card-badge">앞면: 원본 기호 그림 ({curr_idx + 1} / {total_c})</div>', unsafe_allow_html=True)
+            st.image(curr_c["symbol"], use_container_width=True)
+            st.caption("👆 [🔄 카드 뒤집기]를 눌러 명칭을 확인하세요")
+        else:
+            st.markdown(f'<div class="card-badge-back">뒷면: 원본 정답 명칭 ({curr_idx + 1} / {total_c})</div>', unsafe_allow_html=True)
+            st.image(curr_c["name"], use_container_width=True)
 
+    st.write("")
+    
     # 버튼 영역
     col_flip, col_know = st.columns(2)
     with col_flip:
