@@ -116,9 +116,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 종합 소방기호 데이터베이스 (Symbol SVG Renders & Full Specs)
+# 종합 소방기호 데이터베이스
 SYMBOLS_DATA = [
-    # 소화기류
     {
         "id": 1,
         "name": "ABC 소화기",
@@ -159,8 +158,6 @@ SYMBOLS_DATA = [
         "desc": "할론 가스를 주성분으로 하는 깨끗한 소화약제 소화기입니다.",
         "exam_tip": "📌 정삼각형 안에 '소' 글자가 기재되어 있습니다."
     },
-
-    # 소화전 & 배관
     {
         "id": 6,
         "name": "옥내소화전함",
@@ -177,8 +174,6 @@ SYMBOLS_DATA = [
         "desc": "건물 외부에 설치되어 소방대원 또는 의용소방대가 외부 진화에 사용하는 소화전 기호입니다.",
         "exam_tip": "📌 배관 라인 중앙에 'H' 문자가 기재되어 있습니다."
     },
-
-    # 헤드류
     {
         "id": 8,
         "name": "스프링클러헤드 (폐쇄형 상향식)",
@@ -195,8 +190,6 @@ SYMBOLS_DATA = [
         "desc": "헤드가 아래쪽을 향하게 설치되어 천장 아래로 살수하는 가장 일반적인 스프링클러 헤드입니다.",
         "exam_tip": "📌 십자선 아래쪽에 반원이 반전 칠해져 있습니다."
     },
-
-    # 밸브류
     {
         "id": 10,
         "name": "체크밸브",
@@ -213,8 +206,6 @@ SYMBOLS_DATA = [
         "desc": "동파 우려가 있는 장소에 설치되며, 감지기 작동 시 클래퍼가 열려 2차측에 물이 공급되는 밸브입니다.",
         "exam_tip": "📌 원 안에 영문 'P'가 표시됩니다."
     },
-
-    # 경보설비기기류
     {
         "id": 12,
         "name": "연기감지기",
@@ -239,8 +230,6 @@ SYMBOLS_DATA = [
         "desc": "피난구(출입구) 상부에 설치하여 비상시 탈출구를 안내하는 유도등 기호입니다.",
         "exam_tip": "📌 원이 4분할되어 대각선 2분할이 검은색으로 칠해져 있습니다."
     },
-
-    # 기타 & 제연
     {
         "id": 15,
         "name": "비상콘센트",
@@ -326,7 +315,8 @@ with tab1:
             
         st.markdown(card_html, unsafe_allow_html=True)
 
-        col_flip, col_know = st.columns([1])
+        # 컬럼 2개 명시적 지정
+        col_flip, col_know = st.columns(2)
         with col_flip:
             if st.button("🔄 카드 뒤집기", type="primary"):
                 st.session_state.is_flipped = not st.session_state.is_flipped
@@ -343,7 +333,8 @@ with tab1:
                 st.rerun()
 
         st.write("")
-        col_prev, col_rand, col_next = st.columns([1])
+        # 컬럼 3개 명시적 지정
+        col_prev, col_rand, col_next = st.columns(3)
         with col_prev:
             if st.button("👈 이전"):
                 st.session_state.card_idx = (st.session_state.card_idx - 1) % total_count
