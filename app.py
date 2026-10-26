@@ -20,18 +20,16 @@ mode = st.sidebar.selectbox(
 if mode == "이차함수 그래프":
     st.subheader("📈 이차함수 ($y = ax^2 + bx + c$) 설정")
     
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        a = st.number_input("이차항 계수 (a)", value=1.0, step=0.5)
-    with col2:
-        c = st.sidebar.constant if hasattr(st.sidebar, 'constant') else st.number_input("상수항 (c)", value=-4.0, step=1.0)
-    
+    # 사이드바 입력창
+    a = st.sidebar.number_input("이차항 계수 (a)", value=1.0, step=0.5)
     b = st.sidebar.number_input("일차항 계수 (b)", value=0.0, step=0.5)
+    c = st.sidebar.number_input("상수항 (c)", value=-4.0, step=1.0)
 
-    # 그래프 그리기
+    # 그래프 계산
     x = np.linspace(-5, 5, 200)
     y = a * x**2 + b * x + c
 
+    # 그래프 그리기
     fig, ax = plt.subplots(figsize=(6, 6))
     ax.plot(x, y, color='blue', linewidth=2.5, label=f'$y = {a}x^2 + {b}x + {c}$')
     ax.axhline(0, color='black', linewidth=1)
@@ -98,8 +96,8 @@ elif mode == "소방·전기 블록 계통도":
     box2 = patches.Rectangle((4, 1.5), 2, 1, edgecolor='black', facecolor='#ccffcc', linewidth=1.5)
     box3 = patches.Rectangle((7.5, 1.5), 2, 1, edgecolor='black', facecolor='#ccccff', linewidth=1.5)
 
-    for b in [box1, box2, box3]:
-        ax.add_patch(b)
+    for b_box in [box1, box2, box3]:
+        ax.add_patch(b_box)
 
     ax.text(1.5, 2, '수신기 (R형)', fontsize=10, ha='center', va='center', weight='bold')
     ax.text(5, 2, '중계기 (Interface)', fontsize=10, ha='center', va='center', weight='bold')
