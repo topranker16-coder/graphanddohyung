@@ -21,8 +21,8 @@ category = st.sidebar.selectbox(
     ["N차 다항함수", "지수 및 로그함수", "삼각함수", "분수 및 무리함수", "원 (Circle)"]
 )
 
-# [수정] 시험지/교재용으로 컴팩트한 그래프 크기 설정 (가로 4.5인치, 세로 3.5인치)
-fig, ax = plt.subplots(figsize=(4.5, 3.5))
+# [핵심 수정] PDF 내보내기 시 페이지를 침범하지 않는 아담한 시험지용 크기 (가로 3.2, 세로 2.4인치)
+fig, ax = plt.subplots(figsize=(3.2, 2.4))
 
 # 3. 카테고리별 분기 및 로직 처리
 if category == "N차 다항함수":
@@ -57,8 +57,8 @@ if category == "N차 다항함수":
         y = a * x**4 + b * x**2 + c
         label_text = f'$y = {a}x^4 + {b}x^2 + {c}$'
 
-    ax.plot(x, y, color='blue', linewidth=2.0, label=label_text)
-    ax.set_title(f"Degree {deg} Polynomial", fontsize=11, fontweight='bold')
+    ax.plot(x, y, color='blue', linewidth=1.8, label=label_text)
+    ax.set_title(f"Degree {deg} Polynomial", fontsize=10, fontweight='bold')
 
 elif category == "지수 및 로그함수":
     st.subheader("📈 지수 및 로그함수 그래프")
@@ -68,13 +68,13 @@ elif category == "지수 및 로그함수":
         base = st.sidebar.slider("밑 (a)", 1.1, 5.0, 2.0, 0.1)
         x = np.linspace(-3, 3, 200)
         y = base**x
-        ax.plot(x, y, color='green', linewidth=2.0, label=f'$y = {base}^x$')
-        ax.set_title("Exponential Function", fontsize=11, fontweight='bold')
+        ax.plot(x, y, color='green', linewidth=1.8, label=f'$y = {base}^x$')
+        ax.set_title("Exponential Function", fontsize=10, fontweight='bold')
     else:
         x = np.linspace(0.01, 5, 200)
         y = np.log(x)
-        ax.plot(x, y, color='darkorange', linewidth=2.0, label='$y = \\ln(x)$')
-        ax.set_title("Logarithmic Function", fontsize=11, fontweight='bold')
+        ax.plot(x, y, color='darkorange', linewidth=1.8, label='$y = \\ln(x)$')
+        ax.set_title("Logarithmic Function", fontsize=10, fontweight='bold')
 
 elif category == "삼각함수":
     st.subheader("📉 삼각함수 그래프 (Sin, Cos, Tan)")
@@ -93,67 +93,14 @@ elif category == "삼각함수":
         y[np.abs(y) > 10] = np.nan
         label_text = '$y = \\tan(x)$'
 
-    ax.plot(x, y, color='purple', linewidth=2.0, label=label_text)
+    ax.plot(x, y, color='purple', linewidth=1.8, label=label_text)
     ax.set_xlim(-2*np.pi, 2*np.pi)
     ax.set_ylim(-3, 3)
-    ax.set_title("Trigonometric Function", fontsize=11, fontweight='bold')
+    ax.set_title("Trigonometric Function", fontsize=10, fontweight='bold')
 
 elif category == "분수 및 무리함수":
     st.subheader("📉 분수(유리) 및 무리함수 그래프")
     func_type = st.sidebar.selectbox("유형 선택", ["분수함수 ($a/x$)", "무리함수 ($\sqrt{x}$ )"])
     
     if "분수" in func_type:
-        a = st.sidebar.number_input("분자 계수 (a)", value=1.0)
-        x1 = np.linspace(-5, -0.1, 200)
-        x2 = np.linspace(0.1, 5, 200)
-        ax.plot(x1, a/x1, color='crimson', linewidth=2.0, label=f'$y = {a}/x$')
-        ax.plot(x2, a/x2, color='crimson', linewidth=2.0)
-        ax.set_xlim(-5, 5)
-        ax.set_ylim(-5, 5)
-        ax.set_title("Rational Function", fontsize=11, fontweight='bold')
-    else:
-        x = np.linspace(0, 9, 200)
-        y = np.sqrt(x)
-        ax.plot(x, y, color='teal', linewidth=2.0, label='$y = \\sqrt{x}$')
-        ax.set_xlim(-1, 10)
-        ax.set_ylim(-1, 5)
-        ax.set_title("Irrational Function", fontsize=11, fontweight='bold')
-
-elif category == "원 (Circle)":
-    st.subheader("⭕ 원 방정식 및 기하 도형 설정")
-    r = st.sidebar.slider("반지름 (r)", 1.0, 5.0, 3.0, 0.5)
-    
-    circle = patches.Circle((0, 0), r, edgecolor='blue', facecolor='skyblue', alpha=0.3, linewidth=2)
-    ax.add_patch(circle)
-    
-    ax.plot(0, 0, 'ro', markersize=5)
-    ax.text(0.2, 0.2, '(0, 0)', fontsize=10, fontweight='bold')
-    
-    ax.set_xlim(-r-2, r+2)
-    ax.set_ylim(-r-2, r+2)
-    ax.set_aspect('equal')
-    ax.set_title(f"Circle (r = {r})", fontsize=11, fontweight='bold', pad=10)
-
-# 4. 공통 축 스타일 적용
-if category != "원 (Circle)":
-    ax.axhline(0, color='black', linewidth=0.8)
-    ax.axvline(0, color='black', linewidth=0.8)
-    ax.grid(True, linestyle=':', alpha=0.6)
-    ax.legend(fontsize=10, loc='upper right')
-
-# [수정] 그래프 여백 자동 밀착 정돈
-plt.tight_layout()
-
-# 5. 화면 출력
-st.pyplot(fig)
-
-# 6. 다운로드 버튼
-buf = io.BytesIO()
-fig.savefig(buf, format="png", dpi=300, bbox_inches='tight')
-buf.seek(0)
-st.download_button(
-    label=f"📥 '{save_filename}' 다운로드하기",
-    data=buf,
-    file_name=save_filename,
-    mime="image/png"
-)
+        a = st.sidebar.number_input
