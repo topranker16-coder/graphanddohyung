@@ -2,7 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
-import os
+import io
 
 # 1. 웹페이지 기본 설정
 st.set_page_config(page_title="고급 수학 및 도면 자동 생성기", layout="wide")
@@ -10,9 +10,8 @@ st.set_page_config(page_title="고급 수학 및 도면 자동 생성기", layou
 st.title("📐 종합 수학 함수 및 기하 도면 자동 출제 시스템")
 st.markdown("수능·모의고사 출제 및 단권화 노트를 위한 모든 함수 및 도형 시각화 프로그램")
 
-# 2. 사이드바(왼쪽 메뉴) 설정 - 직통 저장 경로 및 파일명 설정
-st.sidebar.header("📁 저장 폴더 및 파일명 설정")
-save_folder = st.sidebar.text_input("마크다운 노트 폴더 경로", value="C:/MyNotes")
+# 2. 사이드바(왼쪽 메뉴) 설정 - 파일명 및 카테고리 선택
+st.sidebar.header("🛠️ 파일명 및 종류 설정")
 save_filename = st.sidebar.text_input("저장할 파일 이름", value="problem_01.png")
 
 st.sidebar.markdown("---")
@@ -144,15 +143,13 @@ if category != "원 (Circle)":
 # 5. 화면 출력
 st.pyplot(fig)
 
-# 6. 마크다운 작업 폴더로 '직통 저장'하는 버튼
-if st.button("📂 마크다운 폴더로 바로 저장하기"):
-    try:
-        # 폴더가 없으면 자동 생성
-        if not os.path.exists(save_folder):
-            os.makedirs(save_folder)
-        
-        full_path = os.path.join(save_folder, save_filename)
-        fig.savefig(full_path, dpi=300, bbox_inches='tight')
-        st.success(f"✅ 축하합니다! 파일이 다음 경로에 즉시 저장되었습니다: `{full_path}`")
-    except Exception as e:
-        st.error(f"❌ 저장 실패: 경로를 확인해 주세요. ({e})")
+# 6. 다운로드 버튼
+buf = io.BytesIO()
+fig.savefig(buf, format="png", dpi=300, bbox_inches='tight')
+buf.seek(0)
+st.download_button(
+    label=f"📥 '{save_filename}' 다운로드하기",
+    data=buf,
+    file_name=save_filename,
+    mime="image/png"
+)
