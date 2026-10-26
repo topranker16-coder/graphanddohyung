@@ -10,8 +10,12 @@ st.set_page_config(page_title="고급 수학 및 도면 자동 생성기", layou
 st.title("📐 종합 수학 함수 및 기하 도면 자동 출제 시스템")
 st.markdown("수능·모의고사 출제 및 단권화 노트를 위한 모든 함수 및 도형 시각화 프로그램")
 
-# 2. 사이드바(왼쪽 메뉴)에서 대분류 선택
-st.sidebar.header("🛠️ 함수 및 도형 종류 선택")
+# 2. 사이드바(왼쪽 메뉴) 설정 - 파일명 입력 및 카테고리 선택
+st.sidebar.header("🛠️ 설정 및 파일 저장")
+save_filename = st.sidebar.text_input("저장할 파일 이름 (예: graph_01.png)", value="math_graph.png")
+
+st.sidebar.markdown("---")
+st.sidebar.header("📊 함수 및 도형 종류 선택")
 category = st.sidebar.selectbox(
     "어떤 그래프를 그리시겠습니까?",
     ["N차 다항함수", "지수 및 로그함수", "삼각함수", "분수 및 무리함수", "원 (Circle)"]
@@ -67,10 +71,10 @@ elif category == "지수 및 로그함수":
         ax.plot(x, y, color='green', linewidth=2.5, label=f'$y = {base}^x$')
         ax.set_title("Exponential Function", fontsize=14, fontweight='bold')
     else:
-        x = np.linspace(0.01, 5, 200)
-        y = np.log(x) # 자연로그 기준
-        ax.plot(x, y, color='darkorange', linewidth=2.5, label='$y = \\ln(x)$')
-        ax.set_title("Logarithmic Function", fontsize=14, fontweight='bold')
+      x = np.linspace(0.01, 5, 200)
+      y = np.log(x)
+      ax.plot(x, y, color='darkorange', linewidth=2.5, label='$y = \\ln(x)$')
+      ax.set_title("Logarithmic Function", fontsize=14, fontweight='bold')
 
 elif category == "삼각함수":
     st.subheader("📉 삼각함수 그래프 (Sin, Cos, Tan)")
@@ -86,7 +90,7 @@ elif category == "삼각함수":
     else:
         x = np.linspace(-1.4*np.pi, 1.4*np.pi, 400)
         y = np.tan(x)
-        y[np.abs(y) > 10] = np.nan # 점근선 발산 처리
+        y[np.abs(y) > 10] = np.nan
         label_text = '$y = \\tan(x)$'
 
     ax.plot(x, y, color='purple', linewidth=2.5, label=label_text)
@@ -119,16 +123,15 @@ elif category == "원 (Circle)":
     st.subheader("⭕ 원 방정식 및 기하 도형 설정")
     r = st.sidebar.slider("반지름 (r)", 1.0, 5.0, 3.0, 0.5)
     
-    # 원 패치 추가
     circle = patches.Circle((0, 0), r, edgecolor='blue', facecolor='skyblue', alpha=0.3, linewidth=2)
     ax.add_patch(circle)
     
-    ax.plot(0, 0, 'ro', markersize=6) # 중심점
+    ax.plot(0, 0, 'ro', markersize=6)
     ax.text(0.2, 0.2, '(0, 0)', fontsize=11, fontweight='bold')
     
     ax.set_xlim(-r-2, r+2)
     ax.set_ylim(-r-2, r+2)
-    ax.set_aspect('equal') # 가로세로 비율 1:1 유지
+    ax.set_aspect('equal')
     ax.set_title(f"Circle (Radius r = {r})", fontsize=14, fontweight='bold', pad=15)
 
 # 4. 공통 축 스타일 적용
@@ -141,13 +144,13 @@ if category != "원 (Circle)":
 # 5. 화면 출력
 st.pyplot(fig)
 
-# 6. 이미지 다운로드 버튼
+# 6. 사용자 지정 파일명이 반영된 다운로드 버튼
 buf = io.BytesIO()
 fig.savefig(buf, format="png", dpi=300, bbox_inches='tight')
 buf.seek(0)
 st.download_button(
-    label="📥 현재 그래프 이미지 다운로드 (PNG)",
+    label=f"📥 '{save_filename}'(으)로 이미지 다운로드",
     data=buf,
-    file_name="math_drawing.png",
+    file_name=save_filename,
     mime="image/png"
 )
